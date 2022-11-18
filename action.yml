@@ -124,6 +124,7 @@ runs:
       id: init
       run: |
         set +e
+        echo "\${PWD}: ${PWD}"
         terraform init \
           --backend-config="storage_account_name=${{ inputs.azure_storage_account }}" \
           --backend-config="container_name=${{ inputs.azure_storage_account_container }}" \
@@ -139,6 +140,7 @@ runs:
       shell: bash
       run: |
         set +e
+        echo "\${PWD}: ${PWD}"
         terraform validate -no-color
         echo "exit_code=${?}" >> ${GITHUB_OUTPUT}
       continue-on-error: true
@@ -167,6 +169,7 @@ runs:
       shell: bash
       id: deploy_plan
       run: |
+        echo "\${PWD}: ${PWD}"
         terraform plan \
         --var-file=${{ inputs.terraform_variable_definitions_file }} \
         --out=deploy_plan.tfplan
@@ -227,6 +230,7 @@ runs:
         && ${{ github.ref_name == 'main' }}
       shell: bash
       run: |
+        echo "\${PWD}: ${PWD}"
         TF_LOG=ERROR terraform apply \
           -auto-approve \
           deploy_plan.tfplan
