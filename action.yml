@@ -85,11 +85,13 @@ runs:
       if: ${{ inputs.enable_tfsec == 'true' }}
       with:
         sarif_file: tfsec.sarif
+      working-directory: ${{ inputs.working-directory }}
     # ------------------------------------------------------------------------
     - uses: github/codeql-action/upload-sarif@v2
       if: ${{ inputs.enable_tfsec == 'true' }}
       with:
         sarif_file: tfsec.sarif
+      working-directory: ${{ inputs.working-directory }}
     # ------------------------------------------------------------------------
     - uses: hashicorp/setup-terraform@v2
       with:
@@ -105,16 +107,17 @@ runs:
         echo "client_secret = \"${ARM_CLIENT_SECRET}\"" >> ${{ inputs.terraform_variable_definitions_file }}
         terraform fmt ${{ inputs.terraform_variable_definitions_file }}
       shell: bash
+      working-directory: ${{ inputs.working-directory }}
     # ------------------------------------------------------------------------
     - name: Terraform Format
       id: fmt
       shell: bash
-      working-directory: ${{ inputs.working-directory }}
       run: |
         set +e
         terraform fmt -check -recursive -list=true
         echo "exit_code=${?}" >> ${GITHUB_OUTPUT}
       continue-on-error: true
+      working-directory: ${{ inputs.working-directory }}
     # ------------------------------------------------------------------------
     - name: Terraform Init
       shell: bash
@@ -134,12 +137,12 @@ runs:
     - name: Terraform Validate
       id: validate
       shell: bash
-      working-directory: ${{ inputs.working-directory }}
       run: |
         set +e
         terraform validate -no-color
         echo "exit_code=${?}" >> ${GITHUB_OUTPUT}
       continue-on-error: true
+      working-directory: ${{ inputs.working-directory }}
     # ------------------------------------------------------------------------
     - name: Determine Job Exit Status
       shell: python
