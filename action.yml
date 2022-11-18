@@ -30,6 +30,10 @@ inputs:
     description: (Optional) Enables tfsec scans and code quality checks on Terraform configurations.
     required: false
     type: boolean
+  environment:
+    description: (Required) Specify the environment for both GitHub and Azure.
+    required: true
+    type: string
   github_token:
     description: (Required) Specify a valid GITHUB_TOKEN.
     required: true
@@ -64,12 +68,14 @@ branding:
 
 runs:
   using: "composite"
+  runs-on: self-hosted
   steps:
     # ------------------------------------------------------------------------
     - name: Set Custom Environment Variables
       shell: bash
       id: vars
       run: |
+          echo "ENVIRONMENT=${{ inputs.environment }}" >> ${GITHUB_ENV}
           echo "ARM_CLIENT_ID=${{ inputs.arm_client_id }}" >> ${GITHUB_ENV}
           echo "ARM_CLIENT_SECRET=${{ inputs.arm_client_secret }}" >> ${GITHUB_ENV}
           echo "ARM_SUBSCRIPTION_ID=${{ inputs.arm_subscription_id }}" >> ${GITHUB_ENV}
@@ -93,6 +99,7 @@ runs:
     # ------------------------------------------------------------------------
     - name: Obtain GitHub Secrets
       run: |
+        echo "environment = \"${ENVIRONMENT}\"" >> ${{ inputs.terraform_variable_definitions_file }}
         echo "tenant_id = \"${ARM_TENANT_ID}\"" >> ${{ inputs.terraform_variable_definitions_file }}
         echo "subscription_id = \"${ARM_SUBSCRIPTION_ID}\"" >> ${{ inputs.terraform_variable_definitions_file }}
         echo "client_id = \"${ARM_CLIENT_ID}\"" >> ${{ inputs.terraform_variable_definitions_file }}
