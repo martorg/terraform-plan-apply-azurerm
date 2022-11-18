@@ -85,13 +85,13 @@ runs:
       if: ${{ inputs.enable_tfsec == 'true' }}
       with:
         sarif_file: tfsec.sarif
-      working-directory: ${{ inputs.working-directory }}
+        working-directory: ${{ inputs.working_directory }}
     # ------------------------------------------------------------------------
     - uses: github/codeql-action/upload-sarif@v2
       if: ${{ inputs.enable_tfsec == 'true' }}
       with:
         sarif_file: tfsec.sarif
-      working-directory: ${{ inputs.working-directory }}
+        working-directory: ${{ inputs.working_directory }}
     # ------------------------------------------------------------------------
     - uses: hashicorp/setup-terraform@v2
       with:
