@@ -1,0 +1,235 @@
+name: 'Terraform Plan (AzureRM)'
+description: ''
+inputs:
+  arm_client_id:
+    description: (Required) Specify the ARM_CLIENT_ID part of Azure credentials.
+    required: true
+  arm_client_secret:
+    description: (Required) Specify the ARM_CLIENT_SECRET part of Azure credentials.
+    required: true
+  arm_subscription_id:
+    description: (Required) Specify the ARM_SUBSCRIPTION_ID part of Azure credentials.
+    required: true
+  arm_tenant_id:
+    description: (Required) Specify the ARM_TENANT_ID part of Azure credentials.
+    required: true
+  azure_resource_group:
+    description: (Required) Specify the Azure Resource Group where the backend storage account is hosted.
+    required: true
+    type: string
+  azure_storage_account:
+    description: (Required) Specify the Azure Storage Account where the backend state is hosted.
+    required: true
+    type: string
+  azure_storage_account_container:
+    description: (Required) Specify the Azure Storage Account container where backend Terraform state is hosted.
+    required: true
+    type: string
+  enable_tfsec:
+    default: false
+    description: (Optional) Enables tfsec scans and code quality checks on Terraform configurations.
+    required: false
+    type: boolean
+  github_token:
+    description: (Required) Specify a valid GITHUB_TOKEN.
+    required: true
+  plan_mode:
+    default: deploy
+    description: (Optional) Specify plan mode. Valid options are "deploy" or "destroy". Default to "deploy".
+    required: false
+    type: string
+  terraform_state_file:
+    description: (Required) Specify the Terraform state file name for this plan.
+    required: true
+    type: string
+  terraform_variable_definitions_file:
+    description: (Required) Specify the Terraform variable definitions (.tfvars) file relevant to module working_directory.
+    required: true
+    type: string
+  terraform_version:
+    default: latest
+    description: (Optional) Specify the version of Terraform to use. For example, "1.3.1". Default to "latest".
+    required: false
+    type: string
+  working_directory:
+    default: .
+    description: (Optional) Specify the working directory of the root Terraform module.
+    required: false
+    type: string
+
+# https://actions-cool.github.io/github-action-branding/
+branding:
+  icon: 'align-left'
+  color: 'blue'
+
+runs:
+  using: "composite"
+  steps:
+    # ------------------------------------------------------------------------
+    - name: Set Custom Environment Variables
+      shell: bash
+      id: vars
+      run: |
+          echo "ARM_CLIENT_ID=${{ inputs.arm_client_id }}" >> ${GITHUB_ENV}
+          echo "ARM_CLIENT_SECRET=${{ inputs.arm_client_secret }}" >> ${GITHUB_ENV}
+          echo "ARM_SUBSCRIPTION_ID=${{ inputs.arm_subscription_id }}" >> ${GITHUB_ENV}
+          echo "ARM_TENANT_ID=${{ inputs.arm_tenant_id }}" >> ${GITHUB_ENV}
+      working-directory: ${{ inputs.working_directory }}
+    # ------------------------------------------------------------------------
+    - uses: aquasecurity/tfsec-sarif-action@v0.1.4
+      if: ${{ inputs.enable_tfsec == 'true' }}
+      with:
+        sarif_file: tfsec.sarif
+    # ------------------------------------------------------------------------
+    - uses: github/codeql-action/upload-sarif@v2
+      if: ${{ inputs.enable_tfsec == 'true' }}
+      with:
+        sarif_file: tfsec.sarif
+    # ------------------------------------------------------------------------
+    - uses: hashicorp/setup-terraform@v2
+      with:
+        terraform_version: ${{ inputs.terraform_version }}
+        terraform_wrapper: true
+    # ------------------------------------------------------------------------
+    - name: Obtain GitHub Secrets
+      run: |
+        echo "tenant_id = \"${ARM_TENANT_ID}\"" >> ${{ inputs.terraform_variable_definitions_file }}
+        echo "subscription_id = \"${ARM_SUBSCRIPTION_ID}\"" >> ${{ inputs.terraform_variable_definitions_file }}
+        echo "client_id = \"${ARM_CLIENT_ID}\"" >> ${{ inputs.terraform_variable_definitions_file }}
+        echo "client_secret = \"${ARM_CLIENT_SECRET}\"" >> ${{ inputs.terraform_variable_definitions_file }}
+        terraform fmt ${{ inputs.terraform_variable_definitions_file }}
+      shell: bash
+    # ------------------------------------------------------------------------
+    - name: Terraform Format
+      id: fmt
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: |
+        set +e
+        terraform fmt -check -recursive -list=true
+        echo "exit_code=${?}" >> ${GITHUB_OUTPUT}
+      continue-on-error: true
+    # ------------------------------------------------------------------------
+    - name: Terraform Init
+      shell: bash
+      id: init
+      run: |
+        set +e
+        terraform init \
+          --backend-config="storage_account_name=${{ inputs.azure_storage_account }}" \
+          --backend-config="container_name=${{ inputs.azure_storage_account_container }}" \
+          --backend-config="resource_group_name=${{ inputs.azure_resource_group }}" \
+          --backend-config="key=${{ inputs.terraform_state_file }}" \
+          -lockfile=readonly \
+          -no-color
+        echo "exit_code=${?}" >> ${GITHUB_OUTPUT}
+      working-directory: ${{ inputs.working_directory }}
+    # ------------------------------------------------------------------------
+    - name: Terraform Validate
+      id: validate
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: |
+        set +e
+        terraform validate -no-color
+        echo "exit_code=${?}" >> ${GITHUB_OUTPUT}
+      continue-on-error: true
+    # ------------------------------------------------------------------------
+    - name: Determine Job Exit Status
+      shell: python
+      run: |
+        import sys
+        test_cases = dict(
+          fmt="${{ steps.fmt.outputs.exit_code }}",
+          init="${{ steps.init.outputs.exit_code }}",
+          validate="${{ steps.validate.outputs.exit_code }}",
+        )
+        failed = False
+        for name, exit_code in test_cases.items():
+          success = exit_code == "0"
+          print(name, success)
+          if not success:
+            failed = True
+        if failed:
+          sys.exit(1)
+    # ------------------------------------------------------------------------
+    - name: Terraform Plan (Deploy)
+      if: ${{ inputs.plan_mode == 'deploy' }}
+      shell: bash
+      id: deploy_plan
+      run: |
+        terraform plan \
+        --var-file=${{ inputs.terraform_variable_definitions_file }} \
+        --out=deploy_plan.tfplan
+      working-directory: ${{ inputs.working_directory }}
+    # ------------------------------------------------------------------------
+    - name: Terraform Plan (Deploy Pull Request)
+      if: ${{ inputs.plan_mode == 'deploy' && github.event_name == 'pull_request' }}
+      uses: robburger/terraform-pr-commenter@v1
+      with:
+        commenter_type: plan
+        commenter_input: ${{ format('{0}{1}', steps.deploy_plan.outputs.stdout, steps.deploy_plan.outputs.stderr) }}
+        commenter_exitcode: ${{ steps.deploy_plan.outputs.exitcode }}
+    # ------------------------------------------------------------------------
+    - name: Terraform Plan (Destroy)
+      if: ${{ inputs.plan_mode != 'deploy' }}
+      shell: bash
+      id: destroy_plan
+      run: terraform plan \
+        --var-file=${{ inputs.terraform_variable_definitions_file }} \
+        --destroy \
+        --out=destroy_plan.tfplan
+      working-directory: ${{ inputs.working_directory }}
+    # ------------------------------------------------------------------------
+    - name: Terraform Plan (Destroy Pull Request)
+      if:  ${{ inputs.plan_mode != 'deploy' && github.event_name == 'pull_request' }}
+      uses: robburger/terraform-pr-commenter@v1
+      with:
+        commenter_type: plan
+        commenter_input: ${{ format('{0}{1}', steps.destroy_plan.outputs.stdout, steps.destroy_plan.outputs.stderr) }}
+        commenter_exitcode: ${{ steps.destroy_plan.outputs.exitcode }}
+    # ------------------------------------------------------------------------
+    - name: Compress Artifact
+      shell: bash
+      run: |
+        zip -r \
+          ${{ inputs.plan_mode }}-${{ inputs.terraform_state_file }}.zip \
+          ./* \
+          -x ${{ inputs.terraform_variable_definitions_file }}
+        ls -aln *.zip
+      working-directory: ${{ inputs.working_directory }}
+    # ------------------------------------------------------------------------
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: "${{ inputs.plan_mode }}-${{ inputs.terraform_state_file }}"
+        path: "${{ inputs.working_directory }}/${{ inputs.plan_mode }}-${{ inputs.terraform_state_file }}.zip"
+        retention-days: 1
+    # ------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
+    - name: Terraform Apply (Deploy)
+      if: ${{ inputs.plan_mode == 'deploy' }}
+      shell: bash
+      run: |
+        TF_LOG=ERROR terraform apply \
+          -auto-approve \
+          deploy_plan.tfplan
+      working-directory: ${{ inputs.working_directory }}
+    # ------------------------------------------------------------------------
+    # - name: Terraform Apply (Destroy)
+    #   if: ${{ inputs.plan_mode == 'destroy' }}
+    #   shell: bash
+    #   run: |
+    #     TF_LOG=ERROR terraform apply \
+    #       -auto-approve \
+    #       destroy_plan.tfplan
+    #   working-directory: ${{ inputs.working_directory }}
+    # ------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
