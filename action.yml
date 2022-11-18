@@ -68,7 +68,6 @@ branding:
 
 runs:
   using: "composite"
-  runs-on: self-hosted
   steps:
     # ------------------------------------------------------------------------
     - name: Set Custom Environment Variables
