@@ -218,7 +218,7 @@ runs:
     # ------------------------------------------------------------------------
     # ------------------------------------------------------------------------
     - name: Terraform Apply (Deploy)
-      if: ${{ inputs.plan_mode == 'deploy' }}
+      if: ${{ inputs.plan_mode == 'deploy' && github.event_name != 'pull_request' }}
       shell: bash
       run: |
         TF_LOG=ERROR terraform apply \
