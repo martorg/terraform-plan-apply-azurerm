@@ -107,7 +107,7 @@ runs:
         echo "client_secret = \"${ARM_CLIENT_SECRET}\"" >> ${{ inputs.terraform_variable_definitions_file }}
         terraform fmt ${{ inputs.terraform_variable_definitions_file }}
       shell: bash
-      working-directory: ${{ inputs.working-directory }}
+      working-directory: ${{ inputs.working_directory }}
     # ------------------------------------------------------------------------
     - name: Terraform Format
       id: fmt
@@ -117,7 +117,7 @@ runs:
         terraform fmt -check -recursive -list=true
         echo "exit_code=${?}" >> ${GITHUB_OUTPUT}
       continue-on-error: true
-      working-directory: ${{ inputs.working-directory }}
+      working-directory: ${{ inputs.working_directory }}
     # ------------------------------------------------------------------------
     - name: Terraform Init
       shell: bash
@@ -142,7 +142,7 @@ runs:
         terraform validate -no-color
         echo "exit_code=${?}" >> ${GITHUB_OUTPUT}
       continue-on-error: true
-      working-directory: ${{ inputs.working-directory }}
+      working-directory: ${{ inputs.working_directory }}
     # ------------------------------------------------------------------------
     - name: Determine Job Exit Status
       shell: python
