@@ -223,11 +223,29 @@ runs:
     # ------------------------------------------------------------------------
     # ------------------------------------------------------------------------
     # ------------------------------------------------------------------------
+    - name: Detect Changes
+      if: |
+        github.event_name != 'pull_request'
+        && github.ref_name == 'main'
+      run: |
+        # set -xv
+        if [[ -z $(grep "Your infrastructure matches the configuration." deploy_plan.tfplan) ]]; then
+          echo "Changes detected.... Please review thoroughly the planned changes...."
+          echo "PROCEED_TERRAFORM_APPLY=true" >> "${GITHUB_ENV}"
+        else
+          echo "No changes.... Your infrastructure matches the configuration...."
+          echo "PROCEED_TERRAFORM_APPLY=false" >> "${GITHUB_ENV}"
+        fi
+      continue-on-error: false
+      shell: bash
+    # ------------------------------------------------------------------------
     - name: Terraform Apply (Deploy)
       if: |
         ${{ inputs.plan_mode == 'deploy' }} \
         && ${{ github.event_name != 'pull_request' }} \
-        && ${{ github.ref_name == 'main' }}
+        && ${{ github.ref_name == 'main' }} \
+        && ${{ inputs.environment }} == "prod" \
+        && env.PROCEED_TERRAFORM_APPLY == 'true'
       shell: bash
       run: |
         echo "\${PWD}: ${PWD}"
