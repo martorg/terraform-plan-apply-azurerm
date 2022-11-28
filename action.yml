@@ -179,7 +179,7 @@ runs:
       if: ${{ inputs.plan_mode == 'deploy' && github.event_name == 'pull_request' }}
       uses: robburger/terraform-pr-commenter@v1
       env:
-        GITHUB_TOKEN: ${{ inputs.github_token }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         commenter_type: plan
         commenter_input: ${{ format('{0}{1}', steps.deploy_plan.outputs.stdout, steps.deploy_plan.outputs.stderr) }}
@@ -199,7 +199,7 @@ runs:
       if:  ${{ inputs.plan_mode != 'deploy' && github.event_name == 'pull_request' }}
       uses: robburger/terraform-pr-commenter@v1
       env:
-        GITHUB_TOKEN: ${{ inputs.github_token }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         commenter_type: plan
         commenter_input: ${{ format('{0}{1}', steps.destroy_plan.outputs.stdout, steps.destroy_plan.outputs.stderr) }}
