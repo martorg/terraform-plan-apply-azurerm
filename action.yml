@@ -25,11 +25,11 @@ inputs:
     description: (Required) Specify the Azure Storage Account container where backend Terraform state is hosted.
     required: true
     type: string
-  enable_tfsec:
-    default: false
-    description: (Optional) Enables tfsec scans and code quality checks on Terraform configurations.
-    required: false
-    type: boolean
+  # enable_tfsec:
+  #   default: false
+  #   description: (Optional) Enables tfsec scans and code quality checks on Terraform configurations.
+  #   required: false
+  #   type: boolean
   environment:
     description: (Required) Specify the environment for both GitHub and Azure.
     required: true
@@ -81,17 +81,17 @@ runs:
           echo "ARM_TENANT_ID=${{ inputs.arm_tenant_id }}" >> ${GITHUB_ENV}
       working-directory: ${{ inputs.working_directory }}
     # ------------------------------------------------------------------------
-    - uses: aquasecurity/tfsec-sarif-action@v0.1.4
-      if: ${{ inputs.enable_tfsec == 'true' }}
-      with:
-        sarif_file: tfsec.sarif
-        working-directory: ${{ inputs.working_directory }}
+    # - uses: aquasecurity/tfsec-sarif-action@v0.1.4
+    #   if: ${{ inputs.enable_tfsec == 'true' }}
+    #   with:
+    #     sarif_file: tfsec.sarif
+    #     working-directory: ${{ inputs.working_directory }}
     # ------------------------------------------------------------------------
-    - uses: github/codeql-action/upload-sarif@v2
-      if: ${{ inputs.enable_tfsec == 'true' }}
-      with:
-        sarif_file: tfsec.sarif
-        working-directory: ${{ inputs.working_directory }}
+    # - uses: github/codeql-action/upload-sarif@v2
+    #   if: ${{ inputs.enable_tfsec == 'true' }}
+    #   with:
+    #     sarif_file: tfsec.sarif
+    #     working-directory: ${{ inputs.working_directory }}
     # ------------------------------------------------------------------------
     - uses: hashicorp/setup-terraform@v2
       with:
