@@ -25,8 +25,8 @@ inputs:
     description: (Required) Specify the Azure Storage Account container where backend Terraform state is hosted.
     required: true
     type: string
-  dump_github_context:
-    default: true
+  enable_dump_github_context:
+    default: false
     description: (Optional) Dump GitHub Context.
     required: false
     type: boolean
@@ -231,7 +231,7 @@ runs:
     # ------------------------------------------------------------------------
     # ------------------------------------------------------------------------
     - name: Dump GitHub's Context
-      if: ${{ fromJSON(inputs.dump_github_context) == true }}
+      if: ${{ enable_dump_github_context == 'true' }}
       shell: bash
       env:
         GITHUB_CONTEXT: ${{ toJson(github) }}
