@@ -229,9 +229,11 @@ runs:
     # ------------------------------------------------------------------------
     - name: Terraform Apply (Deploy)
       if: |
-        # ${{ inputs.plan_mode == 'deploy' }} \ # Do not apply in pull request no matter which plan_mode was set.
         ${{ github.event_name != 'pull_request' }} \
-        && ${{ github.ref_name == 'main' }}
+        || ( \
+          ${{ github.ref_name == 'main' }} \
+          && ${{ inputs.plan_mode == 'deploy' }} \
+        )
       shell: bash
       run: |
         echo "\${PWD}: ${PWD}"
