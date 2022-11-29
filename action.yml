@@ -26,7 +26,7 @@ inputs:
     required: true
     type: string
   dump_github_context:
-    default: true
+    default: false
     description: (Optional) Dump GitHub Context.
     required: false
     type: boolean
