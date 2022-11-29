@@ -26,7 +26,7 @@ inputs:
     required: true
     type: string
   dump_github_context:
-    default: false
+    default: true
     description: (Optional) Dump GitHub Context.
     required: false
     type: boolean
@@ -242,7 +242,7 @@ runs:
     # ------------------------------------------------------------------------
     # ------------------------------------------------------------------------
     - name: Terraform Apply (Deploy)
-      if: ${{ github.ref_name == 'main' }}
+      if: ${{ inputs.plan_mode == 'deploy' && github.event_name != 'pull_request' && github.ref_name == 'main' }}
       shell: bash
       run: |
         echo "\${PWD}: ${PWD}"
