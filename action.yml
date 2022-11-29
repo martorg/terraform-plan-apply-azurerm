@@ -231,7 +231,7 @@ runs:
     # ------------------------------------------------------------------------
     # ------------------------------------------------------------------------
     - name: Dump GitHub's Context
-      if: ${{ inputs.dump_github_context }}
+      if: ${{ inputs.dump_github_context == true }}
       shell: bash
       env:
         GITHUB_CONTEXT: ${{ toJson(github) }}
@@ -241,20 +241,8 @@ runs:
       working-directory: ${{ inputs.working_directory }}
     # ------------------------------------------------------------------------
     # ------------------------------------------------------------------------
-    - name: Mock Run
-      if: ${{ github.ref_name == 'main' }}
-      shell: bash
-      run: |
-        echo "\${PWD}: ${PWD}"
-        echo "DEBUG: APPLY COMMAND SHOULD NOT RUN IN PULL REQUEST..."
-      working-directory: ${{ inputs.working_directory }}
-    # ------------------------------------------------------------------------
     - name: Terraform Apply (Deploy)
-
-      if: |
-        ${{ github.event_name != 'pull_request' }} \
-        && ${{ github.ref_name == 'main' }}
-
+      if: ${{ github.ref_name == 'main' }}
       shell: bash
       run: |
         echo "\${PWD}: ${PWD}"
