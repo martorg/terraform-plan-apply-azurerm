@@ -211,6 +211,15 @@ runs:
         commenter_input: ${{ format('{0}{1}', steps.destroy_plan.outputs.stdout, steps.destroy_plan.outputs.stderr) }}
         commenter_exitcode: ${{ steps.destroy_plan.outputs.exitcode }}
     # ------------------------------------------------------------------------
+    - name: Remove Terraform Variable Definitions File
+      shell: bash
+      run: |
+        set +e
+        echo "\${PWD}: ${PWD}"
+        rm --verbose ${{ inputs.terraform_variable_definitions_file }}
+      continue-on-error: true
+      working-directory: ${{ inputs.working_directory }}
+    # ------------------------------------------------------------------------
     - name: Compress Artifact
       shell: bash
       run: |
