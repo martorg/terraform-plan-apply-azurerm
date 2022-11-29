@@ -25,6 +25,11 @@ inputs:
     description: (Required) Specify the Azure Storage Account container where backend Terraform state is hosted.
     required: true
     type: string
+  dump_github_context:
+    default: true
+    description: (Optional) Dump GitHub Context.
+    required: false
+    type: boolean
   enable_tfsec:
     default: false
     description: (Optional) Enables tfsec scans and code quality checks on Terraform configurations.
@@ -225,12 +230,29 @@ runs:
     # ------------------------------------------------------------------------
     # ------------------------------------------------------------------------
     # ------------------------------------------------------------------------
+    - name: Dump GitHub's Context
+      if: ${{ inputs.dump_github_context }}
+      shell: bash
+      env:
+        GITHUB_CONTEXT: ${{ toJson(github) }}
+      run: |
+        echo "\${GITHUB_CONTEXT}":"
+        echo "${GITHUB_CONTEXT}"
+        echo "\n"
+      working-directory: ${{ inputs.working_directory }}
     # ------------------------------------------------------------------------
-    - name: Show GitHub's Variables
+    # ------------------------------------------------------------------------
+    - name: Mock Run
+
+      if: |
+        # https://docs.github.com/en/actions/learn-github-actions/expressions#example-matching-an-array-of-strings
+        contains(fromJson('["pull_request"]'), github.event_name)
+        && ${{ github.ref_name == 'main' }}
+
       shell: bash
       run: |
-        echo "GitHub's Event Name : ${{ github.event_name }}"
-        echo "GitHub's Ref Name   : ${{ github.ref_name }}"
+        echo "\${PWD}: ${PWD}"
+        echo "DEBUG: APPLY COMMAND WILL RUN HERE..."
       working-directory: ${{ inputs.working_directory }}
     # ------------------------------------------------------------------------
     - name: Terraform Apply (Deploy)
