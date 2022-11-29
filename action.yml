@@ -138,6 +138,7 @@ runs:
           -lockfile=readonly \
           -no-color
         echo "exit_code=${?}" >> ${GITHUB_OUTPUT}
+      continue-on-error: true
       working-directory: ${{ inputs.working_directory }}
     # ------------------------------------------------------------------------
     - name: Terraform Validate
