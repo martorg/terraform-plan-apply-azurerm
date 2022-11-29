@@ -229,8 +229,8 @@ runs:
     # ------------------------------------------------------------------------
     - name: Terraform Apply (Deploy)
       if: |
-        ${{ inputs.plan_mode == 'deploy' }} \
-        && ${{ github.event_name != 'pull_request' }} \
+        # ${{ inputs.plan_mode == 'deploy' }} \ # Do not apply in pull request no matter which plan_mode was set.
+        ${{ github.event_name != 'pull_request' }} \
         && ${{ github.ref_name == 'main' }}
       shell: bash
       run: |
