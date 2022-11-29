@@ -242,16 +242,11 @@ runs:
     # ------------------------------------------------------------------------
     # ------------------------------------------------------------------------
     - name: Mock Run
-
-      if: |
-        # https://docs.github.com/en/actions/learn-github-actions/expressions#example-matching-an-array-of-strings
-        contains(fromJson('["pull_request"]'), github.event_name)
-        && ${{ github.ref_name == 'main' }}
-
+      if: ${{ github.ref_name == 'main' }}
       shell: bash
       run: |
         echo "\${PWD}: ${PWD}"
-        echo "DEBUG: APPLY COMMAND WILL RUN HERE..."
+        echo "DEBUG: APPLY COMMAND SHOULD NOT RUN IN PULL REQUEST..."
       working-directory: ${{ inputs.working_directory }}
     # ------------------------------------------------------------------------
     - name: Terraform Apply (Deploy)
