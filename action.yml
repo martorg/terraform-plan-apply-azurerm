@@ -32,7 +32,7 @@ inputs:
     type: boolean
   enable_tfsec:
     default: false
-    description: (Optional) Enables tfsec scans and code quality checks on Terraform configurations.
+    description: (Optional) Enable tfsec scans and code quality checks on Terraform configurations.
     required: false
     type: boolean
   environment:
