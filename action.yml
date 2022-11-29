@@ -231,7 +231,7 @@ runs:
     # ------------------------------------------------------------------------
     # ------------------------------------------------------------------------
     - name: Dump GitHub's Context
-      if: ${{ inputs.dump_github_context == true }}
+      if: ${{ fromJSON(inputs.dump_github_context) = true }}
       shell: bash
       env:
         GITHUB_CONTEXT: ${{ toJson(github) }}
