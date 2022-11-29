@@ -226,14 +226,17 @@ runs:
     # ------------------------------------------------------------------------
     # ------------------------------------------------------------------------
     # ------------------------------------------------------------------------
+    - name: Show GitHub Event Name
+      shell: bash
+      run: |
+        echo "\$\{\{ github.event_name \}\}: ${{  github.event_name }}"
+      working-directory: ${{ inputs.working_directory }}
     # ------------------------------------------------------------------------
     - name: Terraform Apply (Deploy)
       if: |
         ${{ github.event_name != 'pull_request' }} \
-        || ( \
-          ${{ github.ref_name == 'main' }} \
-          && ${{ inputs.plan_mode == 'deploy' }} \
-        )
+        && ( ${{ inputs.plan_mode == 'plan' }} \
+        && ${{ github.ref_name == 'main' }} )
       shell: bash
       run: |
         echo "\${PWD}: ${PWD}"
