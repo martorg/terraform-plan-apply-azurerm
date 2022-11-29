@@ -27,7 +27,7 @@ inputs:
     type: string
   enable_dump_github_context:
     default: false
-    description: (Optional) Dump GitHub Context.
+    description: (Optional) Enable dump GitHub Context.
     required: false
     type: boolean
   enable_tfsec:
