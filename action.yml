@@ -252,7 +252,7 @@ runs:
       working-directory: ${{ inputs.working_directory }}
     # ------------------------------------------------------------------------
     # - name: Terraform Apply (Destroy)
-    #   if: ${{ inputs.plan_mode == 'destroy' }}
+    #   if: ${{ inputs.plan_mode == 'destroy' && github.event_name != 'pull_request' && github.ref_name == 'main' }}
     #   shell: bash
     #   run: |
     #     TF_LOG=ERROR terraform apply \
