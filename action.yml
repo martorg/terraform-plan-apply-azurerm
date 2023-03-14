@@ -113,6 +113,16 @@ runs:
       shell: bash
       working-directory: ${{ inputs.working_directory }}
     # ------------------------------------------------------------------------
+    - name: Terraform Workspace
+      id: workspace
+      shell: bash
+      run: |
+        set +e
+        terraform workspace new ${{ inputs.environment }}
+        echo "exit_code=${?}" >> ${GITHUB_OUTPUT}
+      continue-on-error: true
+      working-directory: ${{ inputs.working_directory }}
+    # ------------------------------------------------------------------------
     - name: Terraform Format
       id: fmt
       shell: bash
