@@ -80,6 +80,7 @@ runs:
       id: vars
       run: |
           echo "ENVIRONMENT=${{ inputs.environment }}" >> ${GITHUB_ENV}
+          echo "TF_WORKSPACE=${{ inputs.environment }}" >> ${GITHUB_ENV}
           echo "ARM_CLIENT_ID=${{ inputs.arm_client_id }}" >> ${GITHUB_ENV}
           echo "ARM_CLIENT_SECRET=${{ inputs.arm_client_secret }}" >> ${GITHUB_ENV}
           echo "ARM_SUBSCRIPTION_ID=${{ inputs.arm_subscription_id }}" >> ${GITHUB_ENV}
