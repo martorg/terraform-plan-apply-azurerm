@@ -193,16 +193,14 @@ runs:
     # ------------------------------------------------------------------------
     - name: Terraform Plan (Deploy Pull Request)
       if: ${{ inputs.plan_mode == 'deploy' && github.event_name == 'pull_request' }}
-      uses: sheeeng/terraform-pull-request-commenter@v1.6.0
+      uses: sheeeng/terraform-pull-request-commenter@v1
       # uses: robburger/terraform-pr-commenter@v1
-      # uses: GetTerminus/terraform-pr-commenter@v2
       env:
         GITHUB_TOKEN: ${{ inputs.github_token }}
       with:
         commenter_type: plan
         commenter_input: ${{ format('{0}{1}', steps.deploy_plan.outputs.stdout, steps.deploy_plan.outputs.stderr) }}
         commenter_exitcode: ${{ steps.deploy_plan.outputs.exitcode }}
-        # terraform_version: ${{ inputs.terraform_version }}
     # ------------------------------------------------------------------------
     - name: Terraform Plan (Destroy)
       if: ${{ inputs.plan_mode != 'deploy' }}
@@ -216,16 +214,14 @@ runs:
     # ------------------------------------------------------------------------
     - name: Terraform Plan (Destroy Pull Request)
       if:  ${{ inputs.plan_mode != 'deploy' && github.event_name == 'pull_request' }}
-      uses: sheeeng/terraform-pull-request-commenter@v1.6.0
+      uses: sheeeng/terraform-pull-request-commenter@v1
       # uses: robburger/terraform-pr-commenter@v1
-      # uses: GetTerminus/terraform-pr-commenter@v2
       env:
         GITHUB_TOKEN: ${{ inputs.github_token }}
       with:
         commenter_type: plan
         commenter_input: ${{ format('{0}{1}', steps.destroy_plan.outputs.stdout, steps.destroy_plan.outputs.stderr) }}
         commenter_exitcode: ${{ steps.destroy_plan.outputs.exitcode }}
-        # terraform_version: ${{ inputs.terraform_version }}
     # ------------------------------------------------------------------------
     - name: Remove Terraform Variable Definitions File
       shell: bash
