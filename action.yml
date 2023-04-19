@@ -200,6 +200,7 @@ runs:
         commenter_type: plan
         commenter_input: ${{ format('{0}{1}', steps.deploy_plan.outputs.stdout, steps.deploy_plan.outputs.stderr) }}
         commenter_exitcode: ${{ steps.deploy_plan.outputs.exitcode }}
+        terraform_version: ${{ inputs.terraform_version }}
     # ------------------------------------------------------------------------
     - name: Terraform Plan (Destroy)
       if: ${{ inputs.plan_mode != 'deploy' }}
@@ -220,6 +221,7 @@ runs:
         commenter_type: plan
         commenter_input: ${{ format('{0}{1}', steps.destroy_plan.outputs.stdout, steps.destroy_plan.outputs.stderr) }}
         commenter_exitcode: ${{ steps.destroy_plan.outputs.exitcode }}
+        terraform_version: ${{ inputs.terraform_version }}
     # ------------------------------------------------------------------------
     - name: Remove Terraform Variable Definitions File
       shell: bash
