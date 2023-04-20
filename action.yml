@@ -193,7 +193,8 @@ runs:
     # ------------------------------------------------------------------------
     - name: Terraform Plan (Deploy Pull Request)
       if: ${{ inputs.plan_mode == 'deploy' && github.event_name == 'pull_request' }}
-      uses: robburger/terraform-pr-commenter@v1
+      uses: sheeeng/terraform-pull-request-commenter@v1.6.0
+      # uses: robburger/terraform-pr-commenter@v1
       env:
         GITHUB_TOKEN: ${{ inputs.github_token }}
       with:
@@ -213,7 +214,8 @@ runs:
     # ------------------------------------------------------------------------
     - name: Terraform Plan (Destroy Pull Request)
       if:  ${{ inputs.plan_mode != 'deploy' && github.event_name == 'pull_request' }}
-      uses: robburger/terraform-pr-commenter@v1
+      uses: sheeeng/terraform-pull-request-commenter@v1.6.0
+      # uses: robburger/terraform-pr-commenter@v1
       env:
         GITHUB_TOKEN: ${{ inputs.github_token }}
       with:
