@@ -146,7 +146,8 @@ runs:
           --backend-config="resource_group_name=${{ inputs.azure_resource_group }}" \
           --backend-config="key=${{ inputs.terraform_state_file }}" \
           -lockfile=readonly \
-          -no-color
+          -no-color \
+          -input=false
         echo "exit_code=${?}" >> ${GITHUB_OUTPUT}
       continue-on-error: true
       working-directory: ${{ inputs.working_directory }}
@@ -188,7 +189,8 @@ runs:
         echo "\${PWD}: ${PWD}"
         terraform plan \
         --var-file=${{ inputs.terraform_variable_definitions_file }} \
-        --out=deploy_plan.tfplan
+        --out=deploy_plan.tfplan \
+        -input=false
       working-directory: ${{ inputs.working_directory }}
     # ------------------------------------------------------------------------
     - name: Terraform Plan (Deploy Pull Request)
@@ -209,7 +211,8 @@ runs:
       run: terraform plan \
         --var-file=${{ inputs.terraform_variable_definitions_file }} \
         --destroy \
-        --out=destroy_plan.tfplan
+        --out=destroy_plan.tfplan \
+        -input=false
       working-directory: ${{ inputs.working_directory }}
     # ------------------------------------------------------------------------
     - name: Terraform Plan (Destroy Pull Request)
@@ -269,6 +272,7 @@ runs:
       run: |
         echo "\${PWD}: ${PWD}"
         TF_LOG=ERROR terraform apply \
+          -input=false \
           -auto-approve \
           deploy_plan.tfplan
       working-directory: ${{ inputs.working_directory }}
@@ -278,6 +282,7 @@ runs:
     #   shell: bash
     #   run: |
     #     TF_LOG=ERROR terraform apply \
+    #       -input=false \
     #       -auto-approve \
     #       destroy_plan.tfplan
     #   working-directory: ${{ inputs.working_directory }}
